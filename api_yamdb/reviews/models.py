@@ -1,124 +1,154 @@
 from django.conf import settings
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
-from django.contrib.auth.validators import UnicodeUsernameValidator
-from django.core.mail import send_mail
+# from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+# from django.contrib.auth.validators import UnicodeUsernameValidator
+# from django.core.mail import send_mail
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-
-# Создаем класс менеджера пользователей
-class MyUserManager(BaseUserManager):
-    """Create and save a user with the given username, email and password"""
-
-    # Создаём базовый метод для создания пользователя
-    def _create_user(self, username, email, password, **extra_fields):
-        # Проверяем есть ли Email
-        if not email:
-            # Выводим сообщение в консоль
-            raise ValueError('The given email must be set')
-        # Проверяем есть ли логин
-        if not username:
-            # Выводим сообщение в консоль
-            raise ValueError('The given username must be set')
-        email = self.normalize_email(email)  # предотвращение множественных регистраций
-        username = self.model.normalize_username(username)
-        # Создаем пользователя
-        user = self.model(
-            username=username,
-            email=email,
-            **extra_fields
-        )
-        # Сохраняем пароль
-        user.set_password(password)
-        # Сохраняем всё остальное
-        user.save(using=self._db)
-        # Возвращаем пользователя
-        return user
-
-    # Создаем метод для создание обычного пользователя
-    # def create_user(self, username, email, password=None, **extra_fields):
-    #     extra_fields.setdefault('is_staff', False)
-    #     extra_fields.setdefault('is_admin', False)
-    #     # Возвращаем нового созданного пользователя
-    #     return self._create_user(
-    #         email, username, password, **extra_fields
-    #     )
-    def create_user(self, email, username, password=None, **extra_fields):
-        # Возвращаем нового созданного пользователя
-        return self._create_user(email, username, password, **extra_fields)
-
-    # Создаем метод для создание админа сайта
-    # def create_superuser(self, username, email, password=None, **extra_fields):
-    #     extra_fields.setdefault('is_staff', True)
-    #     extra_fields.setdefault('is_admin', True)
-    #     if extra_fields.get('is_staff') is not True:
-    #         raise ValueError('Superuser must have is_staff=True.')
-    #     if extra_fields.get('is_admin') is not True:
-    #         raise ValueError('Superuser must have is_admin=True.')
-    #     # Возвращаем нового созданного админа
-    #     return self._create_user(
-    #         username, email, password, **extra_fields
-    #     )
-
-    def create_superuser(self, email, password=None, **extra_fields):
-        user = self.create_user(
-            email,
-            password=password,
-            **extra_fields
-        )
-        user.role = 'admin'
-        user.is_admin = True
-        user.save(using=self._db)
-        return user
-
-
-# Создаём свою модель User, наследуем от AbstractBaseUser
-class User(AbstractBaseUser):
-    """Model representing users."""
-    USER_ROLES = (
-        ('user', 'user'),
-        ('moderator', 'moderator'),
-        ('admin', 'admin'),
-    )
-
-    username_validator = UnicodeUsernameValidator()  # Letters, digits and @/./+/-/_ only.
-
-    username = models.CharField(
-        max_length=150,
-        unique=True,
-        validators=[username_validator],
-        # verbose_name='Login'
-    )  # Логин
-    email = models.EmailField(max_length=254, unique=True, verbose_name='Email')
-    first_name = models.CharField(max_length=150)
-    last_name = models.CharField(max_length=150)
-    bio = models.TextField(
-        max_length=300,
-        null=True,
-        blank=True,
-        help_text='About myself'
-    )
-    role = models.CharField(max_length=10,
-                            choices=USER_ROLES,
-                            default='user',
-                            verbose_name='Role')
-    is_active = models.BooleanField(default=True)  # Статус активации
-    is_staff = models.BooleanField(default=False)  # Статус админа
-
-    USERNAME_FIELD = 'email'  # Идентификатор для обращения
-    REQUIRED_FIELDS = ['username']  # Список имён полей для Superuser
-
-    # Сообщает Django, что класс UserManager, определенный выше,
-    # должен управлять объектами этого типа.
-    objects = MyUserManager()
-
-    # Метод для отображения в админ панели
-    def __str__(self):
-        return self.email
-
-    # Посылает email пользователю. Если from_email равен None, Django использует настройку DEFAULT_FROM_EMAIL.
-    def email_user(self, subject, message, from_email=None, **kwargs):
-        send_mail(subject, message, from_email, [self.email], **kwargs)
+# Cм приложение users
+# # Создаем класс менеджера пользователей
+# # class MyUserManager(BaseUserManager):
+# #     """Create and save a user with the given username, email and password"""
+#
+# # # Создаём базовый метод для создания пользователя
+# # def _create_user(self, username, email, password, **extra_fields):
+# #     # Проверяем есть ли Email
+# #     if not email:
+# #         # Выводим сообщение в консоль
+# #         raise ValueError('The given email must be set')
+# #     # Проверяем есть ли логин
+# #     if not username:
+# #         # Выводим сообщение в консоль
+# #         raise ValueError('The given username must be set')
+# #     email = self.normalize_email(email)  # предотвращение множественных регистраций
+# #     username = self.model.normalize_username(username)
+# #     # Создаем пользователя
+# #     user = self.model(
+# #         username=username,
+# #         email=email,
+# #         **extra_fields
+# #     )
+# #     # Сохраняем пароль
+# #     user.set_password(password)
+# #     # Сохраняем всё остальное
+# #     user.save(using=self._db)
+# #     # Возвращаем пользователя
+# #     return user
+#
+# # Создаем метод для создание обычного пользователя
+# # def create_user(self, username, email, password=None, **extra_fields):
+# #     extra_fields.setdefault('is_staff', False)
+# #     extra_fields.setdefault('is_admin', False)
+# #     # Возвращаем нового созданного пользователя
+# #     return self._create_user(
+# #         email, username, password, **extra_fields
+# #     )
+# # def create_user(self, email, username, password=None, **extra_fields):
+# #     # Возвращаем нового созданного пользователя
+# #     return self._create_user(email, username, password, **extra_fields)
+#
+# # Создаем метод для создание админа сайта
+# # def create_superuser(self, username, email, password=None, **extra_fields):
+# #     extra_fields.setdefault('is_staff', True)
+# #     extra_fields.setdefault('is_admin', True)
+# #     if extra_fields.get('is_staff') is not True:
+# #         raise ValueError('Superuser must have is_staff=True.')
+# #     if extra_fields.get('is_admin') is not True:
+# #         raise ValueError('Superuser must have is_admin=True.')
+# #     # Возвращаем нового созданного админа
+# #     return self._create_user(
+# #         username, email, password, **extra_fields
+# #     )
+#
+# # def create_superuser(self, email, password=None, **extra_fields):
+# #     user = self.create_user(
+# #         email,
+# #         password=password,
+# #         **extra_fields
+# #     )
+# #     user.role = 'admin'
+# #     user.is_admin = True
+# #     user.save(using=self._db)
+# #     return user
+#
+# class MyUserManager(BaseUserManager):
+#     """Создаем класс менеджера пользователей."""
+#
+#     def create_user(self, email, username, password=None):
+#         if not email:
+#             raise ValueError('e-mail обязателен для регистрации!')
+#         if not username:
+#             raise ValueError('username обязателен для регистрации!')
+#
+#         user = self.model(
+#             email=self.normalize_email(email),
+#             username=username,
+#         )
+#
+#         user.set_password(password)
+#         user.save(using=self._db)
+#         return user
+#
+#     def create_superuser(self, email, username, password):
+#         user = self.create_user(
+#             email=self.normalize_email(email),   # предотвращение множественных регистраций
+#             password=password,
+#             username=username,
+#         )
+#         user.is_admin = True
+#         user.is_staff = True
+#         user.is_superuser = True
+#         user.save(using=self._db)
+#         return user
+#
+#
+# # Создаём свою модель User, наследуем от AbstractBaseUser
+# class User(AbstractBaseUser):
+#     """Model representing users."""
+#     USER_ROLES = (
+#         ('user', 'Аутентифицированный пользователь'),
+#         ('moderator', 'Модератор'),
+#         ('admin', 'Администратор'),
+#     )
+#
+#     username_validator = UnicodeUsernameValidator()  # Letters, digits and @/./+/-/_ only.
+#
+#     username = models.CharField(
+#         max_length=150,
+#         unique=True,
+#         validators=[username_validator],
+#         # verbose_name='Login'
+#     )  # Логин
+#     email = models.EmailField(max_length=254, unique=True, verbose_name='Email')
+#     first_name = models.CharField(max_length=150)
+#     last_name = models.CharField(max_length=150)
+#     bio = models.TextField(
+#         max_length=300,
+#         null=True,
+#         blank=True,
+#         help_text='About myself'
+#     )
+#     role = models.CharField(max_length=10,
+#                             choices=USER_ROLES,
+#                             default='user',
+#                             verbose_name='Role')
+#     is_active = models.BooleanField(default=True)  # Статус активации
+#     is_staff = models.BooleanField(default=False)  # Статус админа
+#
+#     USERNAME_FIELD = 'username'  # Идентификатор для обращения
+#     REQUIRED_FIELDS = ['email']  # Список имён полей для Superuser
+#
+#     # Сообщает Django, что класс UserManager, определенный выше,
+#     # должен управлять объектами этого типа.
+#     objects = MyUserManager()
+#
+#     # Метод для отображения в админ панели
+#     def __str__(self):
+#         return self.email
+#
+#     # Посылает email пользователю. Если from_email равен None, Django использует настройку DEFAULT_FROM_EMAIL.
+#     def email_user(self, subject, message, from_email=None, **kwargs):
+#         send_mail(subject, message, from_email, [self.email], **kwargs)
 
 
 class Category(models.Model):
